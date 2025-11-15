@@ -298,7 +298,7 @@
         });
 
         // Touch and mouse gesture controls for rotation
-        const sensitivity = 0.5; // Rotation sensitivity
+        const sensitivity = 0.8; // Rotation sensitivity for horizontal spin
 
         // Mouse events (for desktop testing)
         scene.addEventListener('mousedown', (e) => {
@@ -312,10 +312,9 @@
             if (!isDragging || !markerVisible) return;
             
             const deltaX = e.clientX - previousMouseX;
-            const deltaY = e.clientY - previousMouseY;
             
+            // Only rotate horizontally (Y-axis) for 360° spin
             currentRotation.y += deltaX * sensitivity;
-            currentRotation.z -= deltaY * sensitivity;
             
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
             
@@ -340,10 +339,9 @@
             if (!isDragging || !markerVisible || e.touches.length !== 1) return;
             
             const deltaX = e.touches[0].clientX - previousMouseX;
-            const deltaY = e.touches[0].clientY - previousMouseY;
             
+            // Only rotate horizontally (Y-axis) for 360° spin
             currentRotation.y += deltaX * sensitivity;
-            currentRotation.z -= deltaY * sensitivity;
             
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
             
