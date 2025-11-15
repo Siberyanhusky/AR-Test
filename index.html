@@ -24,12 +24,18 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1000;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            pointer-events: none;
+        }
+
+        #info-overlay.show {
+            display: flex;
+            pointer-events: auto;
         }
 
         #info-content {
@@ -37,9 +43,10 @@
             border-radius: 15px;
             padding: 30px;
             max-width: 800px;
-            max-height: 85vh;
+            max-height: 70vh;
             overflow-y: auto;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         #info-content h1 {
@@ -133,32 +140,10 @@
         }
 
         #marker-link {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 10px;
-            z-index: 998;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            max-width: 200px;
+            display: none;
         }
 
-        #marker-link a {
-            color: #8B4513;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        #marker-link img {
-            width: 100%;
-            margin-top: 10px;
-            border: 2px solid #8B4513;
-            border-radius: 5px;
-        }
-
-        @media (max-width: 768px) {
+                @media (max-width: 768px) {
             #info-content {
                 padding: 20px;
             }
@@ -181,12 +166,9 @@
             }
 
             #marker-link {
-                top: auto;
-                bottom: 120px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
+                display: none;
             }
+        }
         }
 
         .loading {
@@ -205,7 +187,7 @@
 </head>
 <body>
     <!-- Info Overlay -->
-    <div id="info-overlay" style="display: none;">
+    <div id="info-overlay">
         <div id="info-content">
             <h1>🕌 Candi Borobudur</h1>
             
@@ -249,11 +231,7 @@
         📷 Arahkan kamera ke marker Hiro untuk melihat Candi Borobudur dalam AR
     </div>
 
-    <!-- Marker Download Link -->
-    <div id="marker-link">
-        <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" target="_blank">📥 Download Marker Hiro</a>
-        <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Hiro Marker">
-    </div>
+
 
     <!-- UI Controls -->
     <div id="ui-controls">
@@ -299,29 +277,29 @@
         marker.addEventListener('markerFound', () => {
             loading.style.display = 'none';
             // Show info panel automatically when marker is found
-            document.getElementById('info-overlay').style.display = 'flex';
+            document.getElementById('info-overlay').classList.add('show');
         });
 
         marker.addEventListener('markerLost', () => {
             loading.style.display = 'block';
             loading.textContent = 'Marker hilang, cari marker Hiro...';
             // Hide info when marker is lost
-            document.getElementById('info-overlay').style.display = 'none';
+            document.getElementById('info-overlay').classList.remove('show');
         });
 
         // Info button
         document.getElementById('info-btn').addEventListener('click', () => {
-            document.getElementById('info-overlay').style.display = 'flex';
+            document.getElementById('info-overlay').classList.add('show');
         });
 
         document.getElementById('close-info').addEventListener('click', () => {
-            document.getElementById('info-overlay').style.display = 'none';
+            document.getElementById('info-overlay').classList.remove('show');
         });
 
         // Close overlay when clicking outside content
         document.getElementById('info-overlay').addEventListener('click', (e) => {
             if (e.target.id === 'info-overlay') {
-                document.getElementById('info-overlay').style.display = 'none';
+                document.getElementById('info-overlay').classList.remove('show');
             }
         });
 
