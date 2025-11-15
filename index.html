@@ -99,28 +99,63 @@
             transform: translateX(-50%);
             z-index: 999;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .arrow-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
         }
 
         .control-btn {
-            padding: 15px 25px;
+            padding: 15px 20px;
             background: rgba(139, 69, 19, 0.9);
             color: white;
             border: 2px solid white;
-            border-radius: 30px;
-            font-size: 16px;
+            border-radius: 15px;
+            font-size: 24px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-width: 60px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .control-btn:hover {
             background: rgba(160, 82, 45, 0.9);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .arrow-up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .arrow-left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .arrow-down {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .arrow-right {
+            grid-column: 3;
+            grid-row: 2;
         }
 
         #instructions {
@@ -143,7 +178,7 @@
             display: none;
         }
 
-                @media (max-width: 768px) {
+        @media (max-width: 768px) {
             #info-content {
                 padding: 20px;
             }
@@ -161,14 +196,11 @@
             }
 
             .control-btn {
-                padding: 12px 20px;
-                font-size: 14px;
+                padding: 12px 16px;
+                font-size: 20px;
+                min-width: 50px;
+                min-height: 50px;
             }
-
-            #marker-link {
-                display: none;
-            }
-        }
         }
 
         .loading {
@@ -231,12 +263,14 @@
         📷 Arahkan kamera ke marker Hiro untuk melihat Candi Borobudur dalam AR
     </div>
 
-
-
     <!-- UI Controls -->
     <div id="ui-controls">
-        <button class="control-btn" id="info-btn">ℹ️ Info Lengkap</button>
-        <button class="control-btn" id="rotate-btn">🔄 Auto Rotate</button>
+        <div class="arrow-controls">
+            <button class="control-btn arrow-up" id="rotate-up">⬆️</button>
+            <button class="control-btn arrow-left" id="rotate-left">⬅️</button>
+            <button class="control-btn arrow-down" id="rotate-down">⬇️</button>
+            <button class="control-btn arrow-right" id="rotate-right">➡️</button>
+        </div>
     </div>
 
     <div class="loading" id="loading">Memuat AR...</div>
@@ -261,17 +295,18 @@
                 gltf-model="url(Borobudur.glb)"
                 scale="1 1 1"
                 position="0 0.5 0"
-                rotation="-90 0 0"
-                animation="property: rotation; to: -90 360 0; loop: true; dur: 20000; easing: linear; enabled: false">
+                rotation="-90 0 0">
             </a-entity>
         </a-marker>
     </a-scene>
 
     <script>
-        let autoRotate = false;
         const model = document.querySelector('#borobudur-model');
         const marker = document.querySelector('#marker');
         const loading = document.querySelector('#loading');
+        
+        // Track current rotation
+        let currentRotation = { x: -90, y: 0, z: 0 };
         
         // Hide loading when marker is found
         marker.addEventListener('markerFound', () => {
@@ -287,10 +322,7 @@
             document.getElementById('info-overlay').classList.remove('show');
         });
 
-        // Info button
-        document.getElementById('info-btn').addEventListener('click', () => {
-            document.getElementById('info-overlay').classList.add('show');
-        });
+        // Info button - removed, auto show on scan
 
         document.getElementById('close-info').addEventListener('click', () => {
             document.getElementById('info-overlay').classList.remove('show');
@@ -303,14 +335,27 @@
             }
         });
 
-        // Rotate button
-        document.getElementById('rotate-btn').addEventListener('click', () => {
-            autoRotate = !autoRotate;
-            const animation = model.getAttribute('animation');
-            animation.enabled = autoRotate;
-            model.setAttribute('animation', animation);
-            
-            document.getElementById('rotate-btn').textContent = autoRotate ? '⏸️ Stop Rotate' : '🔄 Auto Rotate';
+        // Arrow rotation controls
+        const rotateSpeed = 15; // degrees per click
+
+        document.getElementById('rotate-left').addEventListener('click', () => {
+            currentRotation.y -= rotateSpeed;
+            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+        });
+
+        document.getElementById('rotate-right').addEventListener('click', () => {
+            currentRotation.y += rotateSpeed;
+            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+        });
+
+        document.getElementById('rotate-up').addEventListener('click', () => {
+            currentRotation.x -= rotateSpeed;
+            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+        });
+
+        document.getElementById('rotate-down').addEventListener('click', () => {
+            currentRotation.x += rotateSpeed;
+            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
         });
 
         // Hide loading after scene loads
