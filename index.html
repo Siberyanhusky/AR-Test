@@ -93,69 +93,7 @@
         }
 
         #ui-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .arrow-controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .control-btn {
-            padding: 15px 20px;
-            background: rgba(139, 69, 19, 0.9);
-            color: white;
-            border: 2px solid white;
-            border-radius: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            min-width: 60px;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .control-btn:hover {
-            background: rgba(160, 82, 45, 0.9);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .control-btn:active {
-            transform: translateY(0);
-        }
-
-        .arrow-up {
-            grid-column: 2;
-            grid-row: 1;
-        }
-
-        .arrow-left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        .arrow-down {
-            grid-column: 2;
-            grid-row: 2;
-        }
-
-        .arrow-right {
-            grid-column: 3;
-            grid-row: 2;
+            display: none;
         }
 
         #instructions {
@@ -170,6 +108,22 @@
             z-index: 998;
             text-align: center;
             font-size: 14px;
+            max-width: 90%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #touch-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 69, 19, 0.9);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            z-index: 998;
+            text-align: center;
+            font-size: 13px;
             max-width: 90%;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
@@ -195,11 +149,9 @@
                 font-size: 14px;
             }
 
-            .control-btn {
-                padding: 12px 16px;
-                font-size: 20px;
-                min-width: 50px;
-                min-height: 50px;
+            #touch-hint {
+                font-size: 12px;
+                padding: 10px 20px;
             }
         }
         }
@@ -307,13 +259,21 @@
         const model = document.querySelector('#borobudur-model');
         const marker = document.querySelector('#marker');
         const loading = document.querySelector('#loading');
+        const scene = document.querySelector('a-scene');
         
         // Track current rotation
         let currentRotation = { x: -90, y: 0, z: 0 };
         
+        // Touch/mouse tracking
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        let markerVisible = false;
+        
         // Hide loading when marker is found
         marker.addEventListener('markerFound', () => {
             loading.style.display = 'none';
+            markerVisible = true;
             // Show info panel automatically when marker is found
             document.getElementById('info-overlay').classList.add('show');
         });
@@ -321,11 +281,10 @@
         marker.addEventListener('markerLost', () => {
             loading.style.display = 'block';
             loading.textContent = 'Marker hilang, cari marker Hiro...';
+            markerVisible = false;
             // Hide info when marker is lost
             document.getElementById('info-overlay').classList.remove('show');
         });
-
-        // Info button - removed, auto show on scan
 
         document.getElementById('close-info').addEventListener('click', () => {
             document.getElementById('info-overlay').classList.remove('show');
@@ -338,27 +297,63 @@
             }
         });
 
-        // Arrow rotation controls
-        const rotateSpeed = 15; // degrees per click
+        // Touch and mouse gesture controls for rotation
+        const sensitivity = 0.5; // Rotation sensitivity
 
-        document.getElementById('rotate-left').addEventListener('click', () => {
-            currentRotation.y += rotateSpeed; // Rotate around Y-axis (horizontal spin)
-            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+        // Mouse events (for desktop testing)
+        scene.addEventListener('mousedown', (e) => {
+            if (!markerVisible) return;
+            isDragging = true;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
         });
 
-        document.getElementById('rotate-right').addEventListener('click', () => {
-            currentRotation.y -= rotateSpeed; // Rotate around Y-axis (horizontal spin)
+        scene.addEventListener('mousemove', (e) => {
+            if (!isDragging || !markerVisible) return;
+            
+            const deltaX = e.clientX - previousMouseX;
+            const deltaY = e.clientY - previousMouseY;
+            
+            currentRotation.y += deltaX * sensitivity;
+            currentRotation.z -= deltaY * sensitivity;
+            
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+            
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
         });
 
-        document.getElementById('rotate-up').addEventListener('click', () => {
-            currentRotation.z += rotateSpeed; // Rotate around Z-axis (tilt up)
-            model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+        scene.addEventListener('mouseup', () => {
+            isDragging = false;
         });
 
-        document.getElementById('rotate-down').addEventListener('click', () => {
-            currentRotation.z -= rotateSpeed; // Rotate around Z-axis (tilt down)
+        // Touch events (for mobile)
+        scene.addEventListener('touchstart', (e) => {
+            if (!markerVisible || e.touches.length !== 1) return;
+            isDragging = true;
+            previousMouseX = e.touches[0].clientX;
+            previousMouseY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+
+        scene.addEventListener('touchmove', (e) => {
+            if (!isDragging || !markerVisible || e.touches.length !== 1) return;
+            
+            const deltaX = e.touches[0].clientX - previousMouseX;
+            const deltaY = e.touches[0].clientY - previousMouseY;
+            
+            currentRotation.y += deltaX * sensitivity;
+            currentRotation.z -= deltaY * sensitivity;
+            
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
+            
+            previousMouseX = e.touches[0].clientX;
+            previousMouseY = e.touches[0].clientY;
+            e.preventDefault();
+        }, { passive: false });
+
+        scene.addEventListener('touchend', () => {
+            isDragging = false;
         });
 
         // Hide loading after scene loads
