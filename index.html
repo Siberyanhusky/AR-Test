@@ -132,7 +132,7 @@
             display: none;
         }
 
-                @media (max-width: 768px) {
+        @media (max-width: 768px) {
             #info-content {
                 padding: 20px;
             }
@@ -153,7 +153,6 @@
                 font-size: 12px;
                 padding: 10px 20px;
             }
-        }
         }
 
         .loading {
@@ -216,7 +215,10 @@
         📷 Arahkan kamera ke marker Hiro untuk melihat Candi Borobudur dalam AR
     </div>
 
-
+    <!-- Touch Hint -->
+    <div id="touch-hint">
+        👆 Sentuh dan geser untuk memutar model 360°
+    </div>
 
     <!-- UI Controls -->
     <div id="ui-controls">
@@ -298,7 +300,7 @@
         });
 
         // Touch and mouse gesture controls for rotation
-        const sensitivity = 0.8; // Rotation sensitivity for horizontal spin
+        const sensitivity = 0.8; // Rotation sensitivity
 
         // Mouse events (for desktop testing)
         scene.addEventListener('mousedown', (e) => {
@@ -312,9 +314,14 @@
             if (!isDragging || !markerVisible) return;
             
             const deltaX = e.clientX - previousMouseX;
+            const deltaY = e.clientY - previousMouseY;
             
-            // Only rotate horizontally (Y-axis) for 360° spin
+            // Rotate horizontally (Y-axis) and vertically (X-axis) for full 360° control
             currentRotation.y += deltaX * sensitivity;
+            currentRotation.x += deltaY * sensitivity;
+            
+            // Clamp X rotation to prevent flipping (e.g., -180 to 0 degrees)
+            currentRotation.x = Math.max(-180, Math.min(0, currentRotation.x));
             
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
             
@@ -339,9 +346,14 @@
             if (!isDragging || !markerVisible || e.touches.length !== 1) return;
             
             const deltaX = e.touches[0].clientX - previousMouseX;
+            const deltaY = e.touches[0].clientY - previousMouseY;
             
-            // Only rotate horizontally (Y-axis) for 360° spin
+            // Rotate horizontally (Y-axis) and vertically (X-axis) for full 360° control
             currentRotation.y += deltaX * sensitivity;
+            currentRotation.x += deltaY * sensitivity;
+            
+            // Clamp X rotation to prevent flipping (e.g., -180 to 0 degrees)
+            currentRotation.x = Math.max(-180, Math.min(0, currentRotation.x));
             
             model.setAttribute('rotation', `${currentRotation.x} ${currentRotation.y} ${currentRotation.z}`);
             
